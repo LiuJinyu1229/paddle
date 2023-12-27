@@ -1,0 +1,14 @@
+python train.py \
+--dataset 'nuswide' \
+--times 1 \
+--nc 3000 \
+--n1u 1000 \
+--n2u 1000 \
+--gamma 5 \
+--lamda 50 \
+--a 0.4 \
+--alpha 14 \
+--beta 0.0000001 \
+--p1 0.3 \
+--p2 0.2 \
+--c 0.8

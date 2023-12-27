@@ -1,0 +1,14 @@
+python train.py \
+--dataset 'coco' \
+--times 1 \
+--nc 6000 \
+--n1u 2000 \
+--n2u 2000 \
+--gamma 0.5 \
+--lamda 50 \
+--a 0.6 \
+--alpha 14 \
+--beta 0.0000001 \
+--p1 0.4 \
+--p2 0.3 \
+--c 0.8
