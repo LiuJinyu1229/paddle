@@ -1,2 +1,2 @@
-# paddle
-Some hash models implemented with paddle
+# Bit-aware Semantic Transformer Hashing for Multi-modal Retrieval
+[BSTH](./BSTH/README.md)
