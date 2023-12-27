@@ -1,5 +1,5 @@
 # DAPH
-The implementation of DAPH
+The implementation of "Data-Aware Proxy Hashing for Cross-modal Retrieval"
 
 
 The IAPR TC-12 dataset is available at:https://pan.baidu.com/s/15-bxqgiQk1hx53BQrWIoXQ password is: ml2e
