@@ -19,3 +19,4 @@
 # WGLHH
 [Weighted Gaussian Loss based Hamming Hashing](./WGLHH)
 # Pre-training weights
+The weights of all models are saved in: [[Baidu Netdisk](https://pan.baidu.com/s/1LDkTMPc339D8PoImpVBGxg), password: q1rz]
