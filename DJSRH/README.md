@@ -26,12 +26,8 @@ Cross-modal hashing encodes the multimedia data into a common binary hash space 
 
 ## Usage
 ### Requirements
-- python == 2.7.x
-- pytorch == 0.3.1
-- torchvision
-- CV2
-- PIL
-- h5py
+- Python 3.8
+- paddlepaddle 2.5.2
 
 ### Datasets
 For datasets, we follow [Deep Cross-Modal Hashing's Github (Jiang, CVPR 2017)](https://github.com/jiangqy/DCMH-CVPR2017/tree/master/DCMH_matlab/DCMH_matlab). You can download these datasets from:
