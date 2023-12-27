@@ -7,9 +7,7 @@ This is the source code of ICMR 2020 paper "Deep Adversarial Discrete Hashing fo
 ## Requirements
 
 - Python 3.7.2
-- Pytorch 1.6.0
-- torchvision 0.7.0
-- CUDA 10.1 and cuDNN 7.6.4
+- paddlepaddle 2.5.2
 ```shell
 ##Install required libraries##
 pip install -r requirements.txt
