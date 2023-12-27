@@ -1,8 +1,8 @@
 # Code for the paper [Graph Convolutional Incomplete Multi-modal Hashing]
 
 ## Requirements
-* Python3.7
-* PyTorch
+* Python 3.8
+* paddlepaddle 2.5.2
 
 ## Reference
 
