@@ -1,0 +1,4 @@
+[flickr-16] MAP@I2T = 0.5870, MAP@T2I = 0.5827
+[flickr-16] MAP@I2T = 0.5833, MAP@T2I = 0.5849
+[flickr-16] MAP@I2T = 0.5860, MAP@T2I = 0.5849
+[flickr-16] MAP@I2T = 0.5860, MAP@T2I = 0.5845
