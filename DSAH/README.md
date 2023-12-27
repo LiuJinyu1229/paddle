@@ -6,7 +6,8 @@
 Deep hashing methods have achieved tremendous success in cross-modal retrieval, due to its low storage consumption and fast retrieval speed. In real cross-modal retrieval applications, it's hard to obtain label information. Recently, increasing attention has been paid to unsupervised cross-modal hashing. However, existing methods fail to exploit the intrinsic connections between images and their corresponding descriptions or tags (text modality). In this paper, we propose a novel Deep Semantic-Alignment Hashing (DSAH) for unsupervised cross-modal retrieval, which sufficiently utilizes the co-occurred image-text pairs. DSAH explores the similarity information of different modalities and we elaborately design a semantic-alignment loss function, which elegantly aligns the similarities between features with those between hash codes. Moreover, to further bridge the modality gap, we innovatively propose to reconstruct features of one modality with hash codes of the other one. Extensive experiments on three cross-modal retrieval datasets demonstrate that DSAH achieves the state-of-the-art performance.
 ![Framework](https://github.com/idejie/pics/raw/master/WX20200627-190524.png)
 ## Requirements
-- Python: 3.x
+- Python: 3.8
+- paddlepaddle 2.5.2
 - other dependencies: [env.yaml](https://github.com/idejie/DSAH/blob/master/env.yaml)
 ## Run
 - Update the [setting.py](https://github.com/idejie/DSAH/blob/master/settings.py) with your `data_dir`. And change the value [` EVAL`](https://github.com/idejie/DSAH/blob/be1f3edba30015b164bc41994067a71273cbeb30/settings.py#L6), for **train** setting it with `False`
