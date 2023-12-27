@@ -1,1 +1,1 @@
-For details, see the [checkpoint](../README.md)
+For details, see the [checkpoint](../../README.md)
