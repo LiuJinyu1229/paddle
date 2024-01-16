@@ -68,12 +68,13 @@ class GCIC(object):
         self.txt_dim = self.train_data[1].shape[1]
         self.num_classes = self.train_labels.shape[1]
         self.logger.info('Dataset-%s has %d classes!' % (self.dataset, self.num_classes))
-        self.model_path = 'checkpoint/KNNCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
+
+        self.model_path = 'model/NCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
 
         self.img_mlp_enc = model.MLP(units=[self.img_dim, self.image_hidden_dim, self.fusion_dim])
         self.txt_mlp_enc = model.MLP(units=[self.txt_dim, self.text_hidden_dim, self.fusion_dim])
-        self.img_knn_enc = model.KNNGenerator(K=50)
-        self.txt_knn_enc = model.KNNGenerator(K=50)
+        self.img_TEs_enc = model.TransformerEncoder(Q_dim=self.txt_dim,K_dim=self.txt_dim, V_dim=self.img_dim)
+        self.txt_TEs_enc = model.TransformerEncoder(Q_dim=self.img_dim,K_dim=self.img_dim, V_dim=self.txt_dim)
         self.img_ffn_enc = model.FFNGenerator(input_dim=self.txt_dim, output_dim=self.img_dim)
         self.txt_ffn_enc = model.FFNGenerator(input_dim=self.img_dim, output_dim=self.txt_dim)
         self.fusion_model = model.Fusion(fusion_dim=self.fusion_dim, nbit=self.nbit)
@@ -81,15 +82,15 @@ class GCIC(object):
         # checkpoint = paddle.load(self.model_path)
         # self.img_mlp_enc.set_state_dict(checkpoint['img_mlp_enc'])
         # self.txt_mlp_enc.set_state_dict(checkpoint['txt_mlp_enc'])
-        # self.img_knn_enc.set_state_dict(checkpoint['img_knn_enc'])
-        # self.txt_knn_enc.set_state_dict(checkpoint['txt_knn_enc'])
+        # self.img_TEs_enc.set_state_dict(checkpoint['img_TEs_enc'])
+        # self.txt_TEs_enc.set_state_dict(checkpoint['txt_TEs_enc'])
         # self.img_ffn_enc.set_state_dict(checkpoint['img_ffn_enc'])
         # self.txt_ffn_enc.set_state_dict(checkpoint['txt_ffn_enc'])
         # self.fusion_model.set_state_dict(checkpoint['fusion_model'])
 
         if paddle.device.is_compiled_with_cuda():
             self.img_mlp_enc, self.txt_mlp_enc
-            self.img_knn_enc, self.txt_knn_enc
+            self.img_TEs_enc, self.txt_TEs_enc
             self.img_ffn_enc, self.txt_ffn_enc
             self.fusion_model
         
@@ -100,10 +101,9 @@ class GCIC(object):
                                                     self.img_ffn_enc.parameters() +
                                                     self.txt_ffn_enc.parameters() +
                                                     self.fusion_model.parameters())
-
-        self.knn_optimizer = paddle.optimizer.Adam(learning_rate=self.lr,
-                                    parameters=self.img_knn_enc.parameters() +
-                                                self.txt_knn_enc.parameters())
+        self.TEs_optimizer = paddle.optimizer.Adam(learning_rate=self.lr,
+                                            parameters=self.img_TEs_enc.parameters() +
+                                                        self.txt_TEs_enc.parameters())
         
         self.anchor_nums = config.anchor_nums
         if self.anchor_nums > self.train_dual_nums:
@@ -127,31 +127,40 @@ class GCIC(object):
         self.average_map = 0
 
     def warmup(self):
-        self.img_knn_enc.train(), self.txt_knn_enc.train()
+        self.img_TEs_enc.train(), self.txt_TEs_enc.train()
         self.train_loader = DataLoader(TrainCoupledData(self.train_dual_data[0], self.train_dual_data[1], self.train_dual_labels), batch_size=self.batch_size, shuffle=True)
         for epoch in range(self.WU_EPOCHS):
             for batch_idx, (img_forward, txt_forward, label) in enumerate(self.train_loader):
                 img_forward = img_forward.cuda()
                 txt_forward = txt_forward.cuda()
                 label = label.cuda()
-                self.knn_optimizer.clear_grad()
-                img_neighbour = self.img_knn_enc(txt_forward, self.txt_anchor, self.img_anchor)
-                txt_neighbour = self.txt_knn_enc(img_forward, self.img_anchor, self.txt_anchor)
+                self.TEs_optimizer.clear_grad()
+                graph = utils.GEN_S_GPU(label, self.anchor_label)
+                img_neighbour = self.img_TEs_enc(txt_forward, self.txt_anchor, self.img_anchor, graph)
+                txt_neighbour = self.txt_TEs_enc(img_forward, self.img_anchor, self.txt_anchor, graph)
                 LOSS = self.reconstruction_criterion(img_neighbour, img_forward) + self.reconstruction_criterion(txt_neighbour, txt_forward)
                 LOSS.backward()
-                self.knn_optimizer.step()
+                self.TEs_optimizer.step()
                 if batch_idx == 0:
                     self.logger.info('[%4d/%4d] (Warm-up) Loss: %.4f' % (epoch + 1, self.WU_EPOCHS, LOSS.item()))
 
     def train(self):
         self.img_mlp_enc.train(), self.txt_mlp_enc.train()
         self.img_ffn_enc.train(), self.txt_ffn_enc.train()
-        self.img_knn_enc.train(), self.txt_knn_enc.train()
+        self.img_TEs_enc.train(), self.txt_TEs_enc.train()
         self.fusion_model.train()
         for epoch in range(self.EPOCHS):
             dual_idx = paddle.randperm(self.train_dual_nums).cuda()
-            oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
-            otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            # oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
+            # otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            if self.train_only_imgs_nums > 0:
+                oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
+            else:
+                oimg_idx = paddle.to_tensor([], dtype='int64')
+            if self.train_only_txts_nums > 0:
+                otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            else:
+                otxt_idx = paddle.to_tensor([], dtype='int64')
             for batch_idx in range(self.batch_count):
                 small_dual_idx = paddle.to_tensor(dual_idx[batch_idx * self.batch_dual_size:(batch_idx + 1) * self.batch_dual_size])
                 small_oimg_idx = paddle.to_tensor(oimg_idx[batch_idx * self.batch_img_size:(batch_idx + 1) * self.batch_img_size])
@@ -176,8 +185,8 @@ class GCIC(object):
                     self.logger.info('[%4d/%4d] Loss: %.4f' % (epoch + 1, self.EPOCHS, loss))
         paddle.save({'img_mlp_enc': self.img_mlp_enc.state_dict(),
                      'txt_mlp_enc': self.txt_mlp_enc.state_dict(),
-                     'img_knn_enc': self.img_knn_enc.state_dict(),
-                     'txt_knn_enc': self.txt_knn_enc.state_dict(),
+                     'img_TEs_enc': self.img_TEs_enc.state_dict(),
+                     'txt_TEs_enc': self.txt_TEs_enc.state_dict(),
                      'img_ffn_enc': self.img_ffn_enc.state_dict(),
                      'txt_ffn_enc': self.txt_ffn_enc.state_dict(),
                      'fusion_model': self.fusion_model.state_dict()}, self.model_path)
@@ -189,7 +198,11 @@ class GCIC(object):
         dual_cnt = train_dual_labels.shape[0]
         img_forward = paddle.concat(x=[train_dual_img, train_only_img])
         txt_forward = paddle.concat(x=[train_dual_txt, train_only_txt])
+        img_labels = paddle.concat(x=[train_dual_labels, train_only_img_labels])
+        txt_labels = paddle.concat(x=[train_dual_labels, train_only_txt_labels])
         labels = paddle.concat(x=[train_dual_labels, train_only_img_labels, train_only_txt_labels])
+        img_graph = utils.GEN_S_GPU(img_labels, self.anchor_label)
+        txt_graph = utils.GEN_S_GPU(txt_labels, self.anchor_label)
         graph = utils.GEN_S_GPU(labels, labels)
         img_feat = self.img_mlp_enc(img_forward)
         txt_feat = self.txt_mlp_enc(txt_forward)
@@ -198,11 +211,25 @@ class GCIC(object):
         img_recons_feat = self.img_mlp_enc(img_recons)
         txt_recons_feat = self.txt_mlp_enc(txt_recons)
         with paddle.no_grad():
-            img_neighbour = self.img_knn_enc(txt_forward, self.txt_anchor, self.img_anchor)
-            txt_neighbour = self.txt_knn_enc(img_forward, self.img_anchor, self.txt_anchor)
+            img_neighbour = self.img_TEs_enc(txt_forward, self.txt_anchor, self.img_anchor, txt_graph)
+            txt_neighbour = self.txt_TEs_enc(img_forward, self.img_anchor, self.txt_anchor, img_graph)
+        # import ipdb
+        # ipdb.set_trace()
         dual_repre = self.fusion_model(img_feat[:dual_cnt], txt_feat[:dual_cnt])
-        oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
-        otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
+        if dual_cnt < len(img_feat):
+            oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
+        else:
+            # oimg_repre = self.fusion_model(paddle.to_tensor([], dtype=img_feat.dtype), txt_recons_feat[dual_cnt:])
+            oimg_repre = paddle.zeros([0, dual_repre.shape[1]], dtype=dual_repre.dtype)
+
+        if dual_cnt < len(txt_recons_feat):
+            otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
+        else:
+            # otxt_repre = self.fusion_model(paddle.to_tensor([], dtype=txt_recons_feat.dtype), txt_feat[dual_cnt:])
+            otxt_repre = paddle.zeros([0, dual_repre.shape[1]], dtype=dual_repre.dtype)
+
+        # oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
+        # otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
         total_repre = paddle.concat(x=[dual_repre, oimg_repre, otxt_repre])
         total_repre_norm = paddle.nn.functional.normalize(x=total_repre)
         B = paddle.sign(x=total_repre)
@@ -249,26 +276,28 @@ class GCIC(object):
             dual_txt_feat = self.txt_mlp_enc(self.query_dual_data[1])
             dualH = self.fusion_model(dual_img_feat, dual_txt_feat)
         queryP.append(dualH.cpu().numpy())
-        with paddle.no_grad():
-            oimg_feat = self.img_mlp_enc(self.query_only_imgs)
-            oimg_Gtxt = self.txt_ffn_enc(self.query_only_imgs)
-            oimg_Gtxt = self.txt_mlp_enc(oimg_Gtxt)
-            oimgH = self.fusion_model(oimg_feat, oimg_Gtxt)
-        queryP.append(oimgH.cpu().numpy())
-        with paddle.no_grad():
-            otxt_Gimg = self.img_ffn_enc(self.query_only_txts)
-            otxt_Gimg = self.img_mlp_enc(otxt_Gimg)
-            otxt_feat = self.txt_mlp_enc(self.query_only_txts)
-            otxtH = self.fusion_model(otxt_Gimg, otxt_feat)
-        queryP.append(otxtH.cpu().numpy())
+        if len(self.query_only_imgs) != 0:
+            with paddle.no_grad():
+                oimg_feat = self.img_mlp_enc(self.query_only_imgs)
+                oimg_Gtxt = self.txt_ffn_enc(self.query_only_imgs)
+                oimg_Gtxt = self.txt_mlp_enc(oimg_Gtxt)
+                oimgH = self.fusion_model(oimg_feat, oimg_Gtxt)
+            queryP.append(oimgH.cpu().numpy())
+        if len(self.query_only_txts) != 0:
+            with paddle.no_grad():
+                otxt_Gimg = self.img_ffn_enc(self.query_only_txts)
+                otxt_Gimg = self.img_mlp_enc(otxt_Gimg)
+                otxt_feat = self.txt_mlp_enc(self.query_only_txts)
+                otxtH = self.fusion_model(otxt_Gimg, otxt_feat)
+            queryP.append(otxtH.cpu().numpy())
         queryH = np.concatenate(queryP)
         self.query_code = np.sign(queryH)
         self.logger.info('Query End.')
         assert self.retrieval_code.shape[0] == self.retrieval_labels.shape[0]
         assert self.query_code.shape[0] == self.query_labels.shape[0]
         _dict = {'retrieval_B': self.retrieval_code.astype(np.int8),
-                 'query_B': self.query_code.astype(np.int8), 
-                 'cateTrainTest': np.sign(self.retrieval_labels @ self.query_labels.T).astype(np.int8)}
+            'query_B': self.query_code.astype(np.int8), 'cateTrainTest': np
+            .sign(self.retrieval_labels @ self.query_labels.T).astype(np.int8)}
         map = utils.calc_map(self.query_code, self.retrieval_code, self.query_labels, self.retrieval_labels)
         self.logger.info('Map: %.4f' % (map))
         self.logger.info("-----------------------------------------")
