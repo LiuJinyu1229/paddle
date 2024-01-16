@@ -69,7 +69,7 @@ class GCIC(object):
         self.num_classes = self.train_labels.shape[1]
         self.logger.info('Dataset-%s has %d classes!' % (self.dataset, self.num_classes))
 
-        self.model_path = 'checkpoint/NCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
+        self.model_path = 'model/NCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
 
         self.img_mlp_enc = model.MLP(units=[self.img_dim, self.image_hidden_dim, self.fusion_dim])
         self.txt_mlp_enc = model.MLP(units=[self.txt_dim, self.text_hidden_dim, self.fusion_dim])
@@ -151,8 +151,16 @@ class GCIC(object):
         self.fusion_model.train()
         for epoch in range(self.EPOCHS):
             dual_idx = paddle.randperm(self.train_dual_nums).cuda()
-            oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
-            otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            # oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
+            # otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            if self.train_only_imgs_nums > 0:
+                oimg_idx = paddle.randperm(self.train_only_imgs_nums).cuda()
+            else:
+                oimg_idx = paddle.to_tensor([], dtype='int64')
+            if self.train_only_txts_nums > 0:
+                otxt_idx = paddle.randperm(self.train_only_txts_nums).cuda()
+            else:
+                otxt_idx = paddle.to_tensor([], dtype='int64')
             for batch_idx in range(self.batch_count):
                 small_dual_idx = paddle.to_tensor(dual_idx[batch_idx * self.batch_dual_size:(batch_idx + 1) * self.batch_dual_size])
                 small_oimg_idx = paddle.to_tensor(oimg_idx[batch_idx * self.batch_img_size:(batch_idx + 1) * self.batch_img_size])
@@ -208,8 +216,20 @@ class GCIC(object):
         # import ipdb
         # ipdb.set_trace()
         dual_repre = self.fusion_model(img_feat[:dual_cnt], txt_feat[:dual_cnt])
-        oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
-        otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
+        if dual_cnt < len(img_feat):
+            oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
+        else:
+            # oimg_repre = self.fusion_model(paddle.to_tensor([], dtype=img_feat.dtype), txt_recons_feat[dual_cnt:])
+            oimg_repre = paddle.zeros([0, dual_repre.shape[1]], dtype=dual_repre.dtype)
+
+        if dual_cnt < len(txt_recons_feat):
+            otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
+        else:
+            # otxt_repre = self.fusion_model(paddle.to_tensor([], dtype=txt_recons_feat.dtype), txt_feat[dual_cnt:])
+            otxt_repre = paddle.zeros([0, dual_repre.shape[1]], dtype=dual_repre.dtype)
+
+        # oimg_repre = self.fusion_model(img_feat[dual_cnt:], txt_recons_feat[dual_cnt:])
+        # otxt_repre = self.fusion_model(img_recons_feat[dual_cnt:], txt_feat[dual_cnt:])
         total_repre = paddle.concat(x=[dual_repre, oimg_repre, otxt_repre])
         total_repre_norm = paddle.nn.functional.normalize(x=total_repre)
         B = paddle.sign(x=total_repre)
@@ -256,18 +276,20 @@ class GCIC(object):
             dual_txt_feat = self.txt_mlp_enc(self.query_dual_data[1])
             dualH = self.fusion_model(dual_img_feat, dual_txt_feat)
         queryP.append(dualH.cpu().numpy())
-        with paddle.no_grad():
-            oimg_feat = self.img_mlp_enc(self.query_only_imgs)
-            oimg_Gtxt = self.txt_ffn_enc(self.query_only_imgs)
-            oimg_Gtxt = self.txt_mlp_enc(oimg_Gtxt)
-            oimgH = self.fusion_model(oimg_feat, oimg_Gtxt)
-        queryP.append(oimgH.cpu().numpy())
-        with paddle.no_grad():
-            otxt_Gimg = self.img_ffn_enc(self.query_only_txts)
-            otxt_Gimg = self.img_mlp_enc(otxt_Gimg)
-            otxt_feat = self.txt_mlp_enc(self.query_only_txts)
-            otxtH = self.fusion_model(otxt_Gimg, otxt_feat)
-        queryP.append(otxtH.cpu().numpy())
+        if len(self.query_only_imgs) != 0:
+            with paddle.no_grad():
+                oimg_feat = self.img_mlp_enc(self.query_only_imgs)
+                oimg_Gtxt = self.txt_ffn_enc(self.query_only_imgs)
+                oimg_Gtxt = self.txt_mlp_enc(oimg_Gtxt)
+                oimgH = self.fusion_model(oimg_feat, oimg_Gtxt)
+            queryP.append(oimgH.cpu().numpy())
+        if len(self.query_only_txts) != 0:
+            with paddle.no_grad():
+                otxt_Gimg = self.img_ffn_enc(self.query_only_txts)
+                otxt_Gimg = self.img_mlp_enc(otxt_Gimg)
+                otxt_feat = self.txt_mlp_enc(self.query_only_txts)
+                otxtH = self.fusion_model(otxt_Gimg, otxt_feat)
+            queryP.append(otxtH.cpu().numpy())
         queryH = np.concatenate(queryP)
         self.query_code = np.sign(queryH)
         self.logger.info('Query End.')
