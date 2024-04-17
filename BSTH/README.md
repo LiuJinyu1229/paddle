@@ -4,6 +4,11 @@ The source code of "Bit-aware Semantic Transformer Hashing for Multi-modal Retri
 ## Dataset
   链接：https://pan.baidu.com/s/1-_XwzUb8w-UMupa_U6aWnw 提取码：u7gu
 
+## Requirements
+
+- Python 3.7.2
+- paddlepaddle 2.5.2
+
 ## Baselines
 The baseline codes can be referred in my another repository.  
 https://github.com/BMC-SDNU/Multi-Modal-Hashing-Retrieval
