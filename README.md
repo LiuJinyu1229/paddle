@@ -1,5 +1,7 @@
 # ADSH
 [Asymmetric Deep Supervised Hashing](./ADSH/)
+# AGAH
+[Adversary Guided Asymmetric Hashing for Cross-Modal Retrieval](./AGAH/)
 # BSTH
 [Bit-aware Semantic Transformer Hashing for Multi-modal Retrieval](./BSTH/)
 # DADH
@@ -16,6 +18,8 @@
 [Deep semantic-alignment hashing for unsupervised cross-modal retrieval](./DSAH/)
 # GCIMH
 [Graph Convolutional Incomplete Multi-modal Hashing](./GCIMH/)
+# JDSH
+[Joint-modal Distribution-based Similarity Hashing for Large-scale Unsupervised Deep Cross-modal Retrieval](./JDSH/)
 # KNNCH
 [Partial Multi-Modal Hashing via Neighbor-Aware Completion Learning](./KNNCH/)
 # MLS3RDUH
@@ -24,6 +28,8 @@
 [Partial Multi-Modal Hashing via Neighbor-Aware Completion Learning](./NCH/)
 # PSLDH
 [Partial-Softmax Loss based Deep Hashing](./PSLDH/)
+# SSDH
+[Semantic Structure-based Unsupervised Deep Hashing](./SSDH/)
 # WGLHH
 [Weighted Gaussian Loss based Hamming Hashing](./WGLHH/)
 # Pre-training weights
