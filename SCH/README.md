@@ -4,6 +4,11 @@ Source code for TPAMI paper "[Cross-Modal Hashing Method with Properties of Hamm
 ## Datasets
 Please refer to the provided [link](https://github.com/jiangqy/DCMH-CVPR2017/tree/master/DCMH_tensorflow/DCMH_tensorflow) to download the dataset, create a data folder and update data path in settings.py.
 
+## Environment
+
+`Python 3.7.2`
+`paddlepaddle 2.5.2`
+
 ## Train model
 
 You can directly run the file 
