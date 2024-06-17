@@ -28,6 +28,8 @@
 [Partial Multi-Modal Hashing via Neighbor-Aware Completion Learning](./NCH/)
 # PSLDH
 [Partial-Softmax Loss based Deep Hashing](./PSLDH/)
+# SCH
+[Cross-Modal Hashing Method with Properties of Hamming Space: A New Perspective](./SCH/)
 # SSDH
 [Semantic Structure-based Unsupervised Deep Hashing](./SSDH/)
 # WGLHH
