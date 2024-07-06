@@ -30,12 +30,12 @@ def _main(config, logger, running_cnt):
 if __name__ == '__main__':
     utils.seed_setting(seed=2021)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='flickr', help='Dataset: flickr/nuswide')
+    parser.add_argument('--dataset', type=str, default='flickr', help='Dataset: flickr/nuswide/coco')
     parser.add_argument('--alpha_train', type=float, default=0, help='Missing ratio of train set.')
     parser.add_argument('--alpha_query', type=float, default=0, help='Missing ratio of query set.')
     parser.add_argument('--beta_train', type=float, default=0.5)
     parser.add_argument('--beta_query', type=float, default=0.5)
-    parser.add_argument('--epochs', type=int, default=140) # flickr: 140, nuswide: 50
+    parser.add_argument('--epochs', type=int, default=140) # flickr: 140, nuswide: 50, coco: 50
     parser.add_argument('--warmup_epochs', type=int, default=50) # 50
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--batch_size', type=int, default=512)
