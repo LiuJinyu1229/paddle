@@ -79,14 +79,17 @@ class GCIC(object):
         self.txt_ffn_enc = model.FFNGenerator(input_dim=self.img_dim, output_dim=self.txt_dim)
         self.fusion_model = model.Fusion(fusion_dim=self.fusion_dim, nbit=self.nbit)
 
-        # checkpoint = paddle.load(self.model_path)
-        # self.img_mlp_enc.set_state_dict(checkpoint['img_mlp_enc'])
-        # self.txt_mlp_enc.set_state_dict(checkpoint['txt_mlp_enc'])
-        # self.img_TEs_enc.set_state_dict(checkpoint['img_TEs_enc'])
-        # self.txt_TEs_enc.set_state_dict(checkpoint['txt_TEs_enc'])
-        # self.img_ffn_enc.set_state_dict(checkpoint['img_ffn_enc'])
-        # self.txt_ffn_enc.set_state_dict(checkpoint['txt_ffn_enc'])
-        # self.fusion_model.set_state_dict(checkpoint['fusion_model'])
+        if config.test == 1:
+            self.logger.info("Loading model from %s" % (self.model_path))
+            checkpoint = paddle.load(self.model_path)
+            self.img_mlp_enc.set_state_dict(checkpoint['img_mlp_enc'])
+            self.txt_mlp_enc.set_state_dict(checkpoint['txt_mlp_enc'])
+            self.img_TEs_enc.set_state_dict(checkpoint['img_TEs_enc'])
+            self.txt_TEs_enc.set_state_dict(checkpoint['txt_TEs_enc'])
+            self.img_ffn_enc.set_state_dict(checkpoint['img_ffn_enc'])
+            self.txt_ffn_enc.set_state_dict(checkpoint['txt_ffn_enc'])
+            self.fusion_model.set_state_dict(checkpoint['fusion_model'])
+            self.logger.info("Loading model finished!")
 
         if paddle.device.is_compiled_with_cuda():
             self.img_mlp_enc, self.txt_mlp_enc
