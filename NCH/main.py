@@ -1,21 +1,23 @@
 import argparse
 import time
 import utils
+import paddle
 from GCIC_ours import *
 
 os.environ['FLAGS_cudnn_deterministic'] = 'True'
-paddle.device.set_device('gpu:2')
+paddle.device.set_device('gpu:7')
 
 def _main(config, logger, running_cnt):
     model = GCIC(config=config, logger=logger, running_cnt=running_cnt)
-    logger.info('===========================================================================')
-    logger.info('Training stage!')
-    start_time = time.time() * 1000
-    model.warmup()
-    model.train()
-    train_time = time.time() * 1000 - start_time
-    logger.info('Training time: %.6f' % (train_time / 1000))
-    logger.info('===========================================================================')
+    if config.test == 0:
+        logger.info('===========================================================================')
+        logger.info('Training stage!')
+        start_time = time.time() * 1000
+        model.warmup()
+        model.train()
+        train_time = time.time() * 1000 - start_time
+        logger.info('Training time: %.6f' % (train_time / 1000))
+        logger.info('===========================================================================')
     logger.info('===========================================================================')
     logger.info('Testing stage!')
     start_time = time.time() * 1000
@@ -28,13 +30,13 @@ def _main(config, logger, running_cnt):
 if __name__ == '__main__':
     utils.seed_setting(seed=2021)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='flickr', help='Dataset: flickr/nuswide/coco')
-    parser.add_argument('--alpha_train', type=float, default=0.1, help='Missing ratio of train set.')
-    parser.add_argument('--alpha_query', type=float, default=0.1, help='Missing ratio of query set.')
+    parser.add_argument('--dataset', type=str, default='flickr', help='Dataset: flickr/nuswide')
+    parser.add_argument('--alpha_train', type=float, default=0, help='Missing ratio of train set.')
+    parser.add_argument('--alpha_query', type=float, default=0, help='Missing ratio of query set.')
     parser.add_argument('--beta_train', type=float, default=0.5)
     parser.add_argument('--beta_query', type=float, default=0.5)
-    parser.add_argument('--epochs', type=int, default=140)
-    parser.add_argument('--warmup_epochs', type=int, default=50)
+    parser.add_argument('--epochs', type=int, default=140) # flickr: 140, nuswide: 50
+    parser.add_argument('--warmup_epochs', type=int, default=50) # 50
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--image_hidden_dim', type=int, default=2048)
@@ -48,6 +50,7 @@ if __name__ == '__main__':
     parser.add_argument('--param_sign', type=float, default=0.1, help='Sign loss.')
     parser.add_argument('--ANCHOR', type=str, default='random', help='Anchor choose!(random/balance)')
     parser.add_argument('--run_times', type=int, default=1)
+    parser.add_argument('--test', type=int, default=0)
     logger = utils.logger()
     logger.info('===========================================================================')
     logger.info('Current File: {}'.format(__file__))
