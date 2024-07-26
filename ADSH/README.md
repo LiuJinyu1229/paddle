@@ -12,6 +12,9 @@ paddlepaddle 2.5.2
 ```
 ### 3. Run Demo
 ```python
-$ python ADSH.py --train True
-$ python ADSH.py --train False
+train:
+python ADSH.py --train
+
+test:
+python ADSH.py
 ```
