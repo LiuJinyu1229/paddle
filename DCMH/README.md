@@ -10,8 +10,11 @@ paddlepaddle implementataion for Deep cross-modal hashing
 ## Demo
 
 train:
+
 `python main.py train`
+
 test:
+
 `python main.py test`
 
 ## Dataset
