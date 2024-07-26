@@ -17,12 +17,12 @@ import utils.cnn_model as cnn_model
 import utils.subset_sampler as subsetsampler
 import utils.calc_hr as calc_hr
 
-paddle.device.set_device('gpu:7')
+paddle.device.set_device('gpu:1')
 
 parser = argparse.ArgumentParser(description="ADSH")
 parser.add_argument('--bit', default='32', type=str,
                     help='binary code length (default: 12,24,32,48)')
-parser.add_argument('--gpu', default='7', type=str,
+parser.add_argument('--gpu', default='1', type=str,
                     help='selected gpu (default: 1)')
 parser.add_argument('--arch', default='alexnet', type=str,
                     help='model name (default: alexnet)')
@@ -39,7 +39,7 @@ parser.add_argument('--gamma', default=200, type=int,
                     help='hyper-parameter: gamma (default: 200)')
 parser.add_argument('--learning-rate', default=0.001, type=float,
                     help='hyper-parameter: learning rate (default: 10**-3)')
-parser.add_argument('--train', default=True, type=bool,
+parser.add_argument('--train', action='store_true', 
                     help='whether to train the model (default: True)')
 
 def _logging():
