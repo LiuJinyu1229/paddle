@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from datetime import datetime
 from tqdm import tqdm
-
+import argparse
 import utils.DataProcessing as dp
 import utils.CalcHammingRanking as CalcHR
 
@@ -58,24 +58,13 @@ def Totloss(U, B, Sim, lamda, num_train):
     l = l1 + lamda * l2
     return l, l1, l2, t1
 
-def DPSH_algo(bit, param):
+def DPSH_algo(args):
     # parameters setting
     batch_size = 128
-    epochs = 150
-    learning_rate = 0.0005
-    weight_decay = 10 ** -5
-    model_name = 'alexnet'
     data_set = 'flickr'
     nclasses = 24
 
-    filename = param['filename']
-    checkpoint_path = './checkpoint/DPSH_' + data_set + '_' + str(bit) + '.pdparams'
-
-    lamda = param['lambda']
-    param['bit'] = bit
-    param['epochs'] = epochs
-    param['learning rate'] = learning_rate
-    param['model'] = model_name
+    checkpoint_path = './checkpoint/DPSH_' + data_set + '_' + str(args.bit) + '.pdparams'
 
     ### data processing
     dset_database = dp.DatasetProcessing(train=False, database=True, transform=dp.test_transform)
@@ -105,13 +94,13 @@ def DPSH_algo(bit, param):
     test_labels = dset_test.label
     database_labels = dset_database.label
     ### create model
-    model = CreateModel(model_name, bit)
-    optimizer = paddle.optimizer.SGD(parameters=model.parameters(), learning_rate=learning_rate, weight_decay=weight_decay)
+    model = CreateModel(args.model, args.bit)
+    optimizer = paddle.optimizer.SGD(parameters=model.parameters(), learning_rate=args.learning_rate, weight_decay=args.weight_decay)
 
     ### training phase
     # parameters setting
-    B = paddle.zeros([num_train, bit])
-    U = paddle.zeros([num_train, bit])
+    B = paddle.zeros([num_train, args.bit])
+    U = paddle.zeros([num_train, args.bit])
     train_labels_onehot = EncodingOnehot(train_labels, nclasses)
     test_labels_onehot = EncodingOnehot(test_labels, nclasses)
 
@@ -125,9 +114,9 @@ def DPSH_algo(bit, param):
 
     Sim = CalcSim(train_labels_onehot, train_labels_onehot)
 
-    if param['train']:
+    if args.train:
         print('start training')
-        for epoch in range(epochs):
+        for epoch in range(args.epochs):
             epoch_loss = 0.0
             ## training epoch
             train_loader = tqdm(train_loader)
@@ -148,16 +137,16 @@ def DPSH_algo(bit, param):
                 logloss = (S*theta_x - Logtrick(theta_x)).sum() / (num_train * len(train_label))
                 regterm = paddle.pow(Bbatch - train_outputs, 2).sum() / (num_train * len(train_label))
                 
-                loss = lamda * regterm - logloss
+                loss = args.lamda * regterm - logloss
                 epoch_loss += loss.detach().numpy()
                 optimizer.clear_grad()
                 loss.backward()
                 optimizer.step()
 
-            print('[Train Phase][Epoch: %3d/%3d][Loss: %3.5f]' % (epoch+1, epochs, epoch_loss / len(train_loader)), end='')
-            optimizer = AdjustLearningRate(optimizer, epoch, learning_rate)
+            print('[Train Phase][Epoch: %3d/%3d][Loss: %3.5f]' % (epoch+1, args.epochs, epoch_loss / len(train_loader)), end='')
+            optimizer = AdjustLearningRate(optimizer, epoch, args.learning_rate)
 
-            l, l1, l2, t1 = Totloss(U, B, Sim, lamda, num_train)
+            l, l1, l2, t1 = Totloss(U, B, Sim, args.lamda, num_train)
             totloss_record.append(l)
             totl1_record.append(l1)
             totl2_record.append(l2)
@@ -166,13 +155,13 @@ def DPSH_algo(bit, param):
             print('[Total Loss: %10.5f][total L1: %10.5f][total L2: %10.5f][norm theta: %3.5f]\n' % (l, l1, l2, t1), end='')
 
             ### testing during epoch
-            qB = GenerateCode(model, test_loader, num_test, bit)
+            qB = GenerateCode(model, test_loader, num_test, args.bit)
             tB = paddle.sign(B).numpy()
             map_ = CalcHR.CalcMap(qB, tB, np.array(test_labels), np.array(train_labels))
             train_loss.append(epoch_loss / len(train_loader))
             map_record.append(map_)
 
-            print('[Test Phase ][Epoch: %3d/%3d] MAP(retrieval train): %3.5f' % (epoch+1, epochs, map_))
+            print('[Test Phase ][Epoch: %3d/%3d] MAP(retrieval train): %3.5f' % (epoch+1, args.epochs, map_))
         print('Finished Training')
         paddle.save(model.state_dict(), checkpoint_path)
     else:
@@ -183,8 +172,8 @@ def DPSH_algo(bit, param):
     ## create binary code
     model.eval()
     database_labels_onehot = EncodingOnehot(database_labels, nclasses)
-    qB = GenerateCode(model, test_loader, num_test, bit)
-    dB = GenerateCode(model, database_loader, num_database, bit)
+    qB = GenerateCode(model, test_loader, num_test, args.bit)
+    dB = GenerateCode(model, database_loader, num_database, args.bit)
 
     map = CalcHR.CalcMap(qB, dB, test_labels_onehot.numpy(), database_labels_onehot.numpy())
     print('[Retrieval Phase] MAP(retrieval database): %3.5f' % map)
@@ -195,21 +184,21 @@ def DPSH_algo(bit, param):
     result['train loss'] = train_loss
     result['map record'] = map_record
     result['map'] = map
-    result['param'] = param
     result['total loss'] = totloss_record
     result['l1 loss'] = totl1_record
     result['l2 loss'] = totl2_record
     result['norm theta'] = t1_record
-    result['filename'] = filename
 
     return result
 
 if __name__=='__main__':
-    bit = 32
-    lamda = 50
-    filename = 'log/' + datetime.now().strftime("%y-%m-%d-%H-%M-%S") + '.pkl'
-    param = {}
-    param['lambda'] = lamda
-    param['filename'] = filename
-    param['train'] = True
-    result = DPSH_algo(bit, param)
+    parser = argparse.ArgumentParser(description="DSPH")
+    parser.add_argument('--bit', type=int, default=32, help='binary code length')
+    parser.add_argument('--lamda', type=float, default=50, help='hyper-parameter')
+    parser.add_argument('--epochs', type=int, default=150, help='training epochs')
+    parser.add_argument('--learning_rate', type=float, default=0.0005, help='learning rate')
+    parser.add_argument('--model', type=str, default='alexnet', help='CNN model')
+    parser.add_argument('--weight_decay', type=float, default=10 ** -5, help='weight decay')
+    parser.add_argument('--train', action='store_true', help='Training mode')
+    args = parser.parse_args()
+    result = DPSH_algo(args)
