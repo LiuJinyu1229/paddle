@@ -7,15 +7,14 @@ paddlepaddle implementataion for Deep cross-modal hashing
 `Python 3.7.2`
 `paddlepaddle 2.5.2`
 
-## Usage
+## Demo
 
-`mkdir checkpoints result` to create required folder.
-
-`python main.py help` to get help information.
-
-`python main.py train` for train and test DCMH.
-
-`python main.py test` for test only.
+```
+train:
+python main.py train
+test:
+`python main.py test`
+```
 
 ## Dataset
 
