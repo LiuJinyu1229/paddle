@@ -11,7 +11,7 @@ import paddle.vision.transforms as transforms
 
 from datetime import datetime
 from paddle.io import DataLoader
-
+import argparse
 import utils.data_processing as dp
 import utils.hash_model as image_hash_model
 import utils.calc_hr as calc_hr
@@ -258,6 +258,8 @@ def MLS3RDUH_algo(code_length, train):
     print('map:', map)
 
 if __name__ == "__main__":
-    bit = 64
-    train = False     # whether or not to train the model
-    MLS3RDUH_algo(bit, train)
+    parser = argparse.ArgumentParser(description="DSPH")
+    parser.add_argument('--bit', type=int, default=64)
+    parser.add_argument('--train', action='store_true', help='Training mode')
+    args = parser.parse_args()
+    MLS3RDUH_algo(args.bit, args.train)
