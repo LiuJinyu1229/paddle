@@ -13,8 +13,8 @@ paddlepaddle 2.5.2
 ### 3. Run Demo
 ```python
 train:
-python ADSH.py --train
+$ python ADSH.py --train
 
 test:
-python ADSH.py
+$ python ADSH.py
 ```
