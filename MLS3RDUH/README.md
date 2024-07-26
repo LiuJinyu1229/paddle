@@ -11,5 +11,8 @@ paddlepaddle 2.5.2
 ```
 ### 3. Run Demo
 ```python
+train:
+$ python MLS3RDUH.py --train
+test:
 $ python MLS3RDUH.py
 ```
