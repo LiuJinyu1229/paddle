@@ -175,7 +175,7 @@ def DPSH_algo(args):
     qB = GenerateCode(model, test_loader, num_test, args.bit)
     dB = GenerateCode(model, database_loader, num_database, args.bit)
 
-    map = CalcHR.CalcMap(qB, dB, test_labels_onehot.numpy(), database_labels_onehot.numpy())
+    map = CalcHR.CalcMap(qB, dB, np.array(test_labels), np.array(database_labels))
     print('[Retrieval Phase] MAP(retrieval database): %3.5f' % map)
 
     result = {}
