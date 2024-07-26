@@ -11,8 +11,8 @@ As pytorch doesn't provide pretrained VGG-F model, unlike original DPSH [paper](
 ### 3. Demo:
 ```python
 train:
-python DPSH.py --train
+$ python DPSH.py --train
 
 test:
-python DPSH.py
+$ python DPSH.py
 ```
