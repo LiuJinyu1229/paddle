@@ -1,28 +1,23 @@
 # SCH
 Source code for TPAMI paper "[Cross-Modal Hashing Method with Properties of Hamming Space: A New Perspective](https://ieeexplore.ieee.org/document/10506992/)"
 
-## Datasets
-Please refer to the provided [link](https://github.com/jiangqy/DCMH-CVPR2017/tree/master/DCMH_tensorflow/DCMH_tensorflow) to download the dataset, create a data folder and update data path in settings.py.
+## Requirements
 
-## Environment
+- Python 3.8.18
+- paddlepaddle 2.1.0
+- cuda 11.2
+- cudnn 8.2.1
 
-`Python 3.7.2`
-`paddlepaddle 2.5.2`
-
-## Train model
-
-You can directly run the file 
+## Demo
 ```
-python train.py --Bit 16 --GID 0 --DS 0
+train:
+$ python main.py --train
+test:
+$ python main.py
 ```
-to get the results.
 
-## Evaluate the model
-
-Modify the settings.py
-```
-EVAL = True
-```
+## Dataset
+- mir_cnn_twt.mat
 
 ## Citation
 If you find SCH useful in your research, please consider citing:
