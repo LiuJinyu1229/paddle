@@ -19,6 +19,5 @@ $ python main.py test
 ```
 
 ## Dataset
-`FLICKR.mat`
-
-`imagenet-vgg-f.mat`
+- FLICKR.mat
+- imagenet-vgg-f.mat
