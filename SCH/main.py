@@ -190,12 +190,15 @@ class Session:
 def main():    
     sess = Session()
 
-    if settings.EVAL == True:
+    if settings.EVAL == False:
+        print("Testing...")
         sess.load_checkpoints()
         sess.eval()
+        print("Testing Done!")
 
     else: 
         # settings.EVAL = True
+        print("Training...")
         for epoch in range(settings.NUM_EPOCH):
             sess.train(epoch)
             # eval the Model
@@ -203,9 +206,9 @@ def main():
                 sess.eval(step=epoch + 1)
             # save the model
         settings.EVAL = True
-        sess.logger.info('---------------------------Test------------------------')
         sess.load_checkpoints()
         sess.eval()
+        print("Training Done!")
 
 
 if __name__ == '__main__':
