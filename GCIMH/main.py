@@ -12,28 +12,27 @@ from autoencoder import AutoEncoderGcnModule
 from fusion_module import *
 from evaluate import *
 from losses import *
-from utils import *
-
+import utils
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', default='coco')
+    parser.add_argument('--dataset', default='flickr')
     parser.add_argument('--batch_size', type=int, default=250, help='number of images in a batch')
-    parser.add_argument('--bit', type=int, default=128, help='length of hash codes')
+    parser.add_argument('--bit', type=int, default=32, help='length of hash codes')
     parser.add_argument('--Epoch_num', type=int, default=2, help='num of Epochs')
     parser.add_argument('--times', type=int, default=1, help='num of times')
-    parser.add_argument('--nc', type=int, default=6000, help='complete pairs')
-    parser.add_argument('--n1u', type=int, default=2000, help='incomplete pairs with only images')
-    parser.add_argument('--n2u', type=int, default=2000, help='incomplete pairs with only texts')
-    parser.add_argument('--gamma', type=float, default=0.5, help='balance the importance of image/text')
-    parser.add_argument('--lamda', type=float, default=50, help='lamda')
-    parser.add_argument('--a', type=float, default=0.6, help='a')
+    parser.add_argument('--nc', type=int, default=3000, help='complete pairs')
+    parser.add_argument('--n1u', type=int, default=1000, help='incomplete pairs with only images')
+    parser.add_argument('--n2u', type=int, default=1000, help='incomplete pairs with only texts')
+    parser.add_argument('--gamma', type=float, default=10, help='balance the importance of image/text')
+    parser.add_argument('--lamda', type=float, default=10, help='lamda')
+    parser.add_argument('--a', type=float, default=0.3, help='a')
     parser.add_argument('--alpha', type=int, default=14, help='alpha')
     parser.add_argument('--beta', type=float, default=0.0000001, help='beta')
     parser.add_argument('--p1', type=float, default=0.4, help='node itself')
-    parser.add_argument('--p2', type=float, default=0.3, help='node itself')
-    parser.add_argument('--c', type=float, default=1, help='GCN propogation')
-    parser.add_argument('--train', type=bool, default=True, help='train or not')
+    parser.add_argument('--p2', type=float, default=0.02, help='node itself')
+    parser.add_argument('--c', type=float, default=0.8, help='GCN propogation')
+    parser.add_argument('--train', action='store_true', help='Training mode')
 
     return parser.parse_args()
 
@@ -50,11 +49,11 @@ def generate_train_ds(images, texts, labels):
     index2 = paddle.to_tensor(index2)
     index3 = paddle.to_tensor(index3)
     image1 = paddle.stack([images[i] for i in index1])
-    image1 = normalize(image1)
+    image1 = utils.normalize(image1)
     text1 = paddle.stack([texts[i] for i in index1])
     label1 = paddle.stack([labels[i] for i in index1])
     image2 = paddle.stack([images[i] for i in index2])
-    image2 = normalize(image2)
+    image2 = utils.normalize(image2)
     label2 = paddle.stack([labels[i] for i in index2])
     text3 = paddle.stack([texts[i] for i in index3])
     label3 = paddle.stack([labels[i] for i in index3])
@@ -88,7 +87,7 @@ def generate_train_ds(images, texts, labels):
     return data_loader, paddle.to_tensor(labels).astype('float32'), labels.shape[1], texts.shape[1], labels.shape[0], mean_image, mean_text
 
 def generate_test_database_ds(images, texts, labels):
-    images = normalize(images)
+    images = utils.normalize(images)
     images = images - mean_image
     datasets = ImgFile(images, texts, labels, np.ones([labels.shape[0], 1]), np.ones([labels.shape[0], 1]))
     data_loader = paddle.io.DataLoader(dataset=datasets, batch_size=args.batch_size, shuffle=False)
@@ -119,14 +118,14 @@ def evaluate():
         test_codes.append(codes.numpy())
     test_codes = np.concatenate(test_codes)
 
-    map = calc_map(test_codes, database_codes, test_labels.numpy(), database_labels.numpy())
+    map = utils.calc_map(test_codes, database_codes, test_labels.numpy(), database_labels.numpy())
     print(f'mAP: {map}')
     
 if __name__ == '__main__':
     args = parse_arguments()
 
     os.environ['FLAGS_cudnn_deterministic'] = 'True'
-    paddle.device.set_device('gpu:4')
+    paddle.device.set_device('gpu:1')
 
     paths = ''
     if args.dataset == 'flickr':
@@ -203,7 +202,7 @@ if __name__ == '__main__':
                     # features of label modality
                     for epoch in range(5):
                         for i in range(20):
-                            s = calculate_s(train_labels, train_labels)
+                            s = utils.calculate_s(train_labels, train_labels)
                             all_h_label = label_model(train_labels)
                             loss_label = negative_log_likelihood_similarity_loss1(all_h_label, all_h_label.detach(), s, args.bit) \
                                 + args.beta * quantization_loss1(all_h_label)
@@ -252,7 +251,7 @@ if __name__ == '__main__':
                             text = text.cuda()
                             m1 = m1.cuda()
                             m2 = m2.cuda()
-                            s = calculate_s(label, train_labels)
+                            s = utils.calculate_s(label, train_labels)
                             # construct the graph for this batch
                             graph = paddle.matmul(label, label.t())
                             m = args.c * paddle.tile(paddle.transpose(paddle.multiply(m1, m2), [1, 0]), [250, 1]) + (1 - args.c) * (1 - paddle.tile(paddle.transpose(paddle.multiply(m1, m2), [1, 0]), [250, 1]))                            
@@ -275,9 +274,14 @@ if __name__ == '__main__':
                         print('Latent Loss: %.4f, Similarity Loss: %.4f, Quantization Loss: %.10f' % (Loss1 / i, Loss2 / i, Loss3 / i))
                     evaluate()
                 paddle.save({'label_model': label_model.state_dict(), 'autoencoder_gcn_model': autoencoder_gcn_model.state_dict(), 'fusion_model': fusion_model.state_dict()}, path)
+                print('end of training')
             else:
+                print('Testing...')
+                print("start to load model")
                 checkpoint = paddle.load(path)
                 label_model.load_state_dict(checkpoint['label_model'])
                 autoencoder_gcn_model.load_state_dict(checkpoint['autoencoder_gcn_model'])
                 fusion_model.load_state_dict(checkpoint['fusion_model'])
+                print("model has been loaded")
                 evaluate()
+                print('end of testing')
