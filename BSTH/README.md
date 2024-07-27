@@ -11,9 +11,9 @@ The source code of "Bit-aware Semantic Transformer Hashing for Multi-modal Retri
 ## Demo
 ```
 train:
-python train_transformer.py --train
+$ python train_transformer.py --train
 test:
-python train_transformer.py
+$ python train_transformer.py
 ```
 
 ## Dataset
