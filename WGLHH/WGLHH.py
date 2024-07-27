@@ -141,7 +141,7 @@ def WGLHH_algo(bit, train):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bit', type=int, default=16)
+    parser.add_argument('--bit', type=int, default=32)
     parser.add_argument('--train', action='store_true', help='Training mode')
     args = parser.parse_args()
     WGLHH_algo(args.bit, args.train)
