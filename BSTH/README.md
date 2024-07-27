@@ -16,6 +16,9 @@ test:
 python train_transformer.py
 ```
 
+## Dataset
+- mir_cnn_twt.mat
+
 ## Baselines
 The baseline codes can be referred in my another repository.  
 https://github.com/BMC-SDNU/Multi-Modal-Hashing-Retrieval
