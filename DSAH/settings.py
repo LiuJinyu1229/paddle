@@ -1,9 +1,13 @@
 import logging
 import os.path as osp
 import time
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--train', action='store_true', help='Training mode')
+args = parser.parse_args()
 
 # EVAL = True: just test, EVAL = False: train and eval
-EVAL = False
+EVAL = args.train
 
 # dataset: 'WIKI'
 
@@ -33,7 +37,7 @@ GPU_ID = 4
 NUM_WORKERS = 8
 EPOCH_INTERVAL = 2
 
-MODEL_DIR = './model'
+MODEL_DIR = './checkpoint'
 
 logger = logging.getLogger('train')
 logger.setLevel(logging.INFO)
