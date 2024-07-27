@@ -42,14 +42,6 @@ class Default(object):
             self.text_dim = 1386
             self.training_size = 10000
             self.data_path = '/home1/ljy/dataset/FLICKR-25K.mat'
-        if flag == 'nus':
-            self.dataset = 'nus-wide'
-            self.data_path = '/home1/ljy/dataset/nus_cnn_twt.mat'
-            self.db_size = 193734
-            self.num_label = 21
-            self.query_size = 2100
-            self.text_dim = 1000
-            self.training_size = 10000
 
     def parse(self, kwargs):
         """
