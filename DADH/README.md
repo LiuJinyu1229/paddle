@@ -14,9 +14,9 @@ This is the source code of ICMR 2020 paper "Deep Adversarial Discrete Hashing fo
 ## Demo
 ```
 train:
-python main.py --train
+$ python main.py --train
 test:
-python main.py
+$ python main.py
 ```
 
 ## Dataset
