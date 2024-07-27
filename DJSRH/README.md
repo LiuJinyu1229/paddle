@@ -25,9 +25,9 @@ Cross-modal hashing encodes the multimedia data into a common binary hash space 
 ## Demo
 ```
 train:
-python demo_DJSRH.py --train
+$ python demo_DJSRH.py --train
 test:
-python demo_DJSRH.py
+$ python demo_DJSRH.py
 ```
 
 ## Dataset
