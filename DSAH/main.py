@@ -9,7 +9,7 @@ from metric import compress_wiki, compress, calculate_map
 from models import ImgNet, TxtNet
 
 paddle.seed(1)
-paddle.device.set_device('gpu:4')
+paddle.device.set_device('gpu:0')
 
 class Session:
     def __init__(self):
@@ -164,16 +164,17 @@ class Session:
             self.logger.info("#########is best:%.3f #########" % self.best)
 
     def save_checkpoints(self):
-        file_path = './checkpoint/DSAH_%s_%d.pdparams' % (settings.DATASET, settings.CODE_LEN)
+        file_path = 'DSAH_%s_%d.pdparams' % (settings.DATASET, settings.CODE_LEN)
+        ckp_path = osp.join(settings.MODEL_DIR, file_path)
         obj = {
             'ImgNet': self.CodeNet_I.state_dict(),
             'TxtNet': self.CodeNet_T.state_dict(),
         }
-        paddle.save(obj, file_path)
+        paddle.save(obj, ckp_path)
         self.logger.info('**********Save the trained model successfully.**********')
 
     def load_checkpoints(self):
-        file_path = './checkpoint/DSAH_%s_%d.pdparams' % (settings.DATASET, settings.CODE_LEN)
+        file_path = 'DSAH_%s_%d.pdparams' % (settings.DATASET, settings.CODE_LEN)
         ckp_path = osp.join(settings.MODEL_DIR, file_path)
         try:
             obj = paddle.load(ckp_path)
@@ -187,11 +188,14 @@ class Session:
 def main():
     sess = Session()
 
-    if settings.EVAL == True:
+    if settings.EVAL == False:
+        print('**********Start testing...**********')
         sess.load_checkpoints()
         sess.eval()
+        print('**********Test finished.**********')
 
     else:
+        print('**********Start training...**********')
         for epoch in range(settings.NUM_EPOCH):
             # train the Model
             sess.train(epoch)
@@ -199,8 +203,9 @@ def main():
             if (epoch + 1) % settings.EVAL_INTERVAL == 0:
                 sess.eval()
             # save the model
-        # sess.eval()
+        sess.eval()
         settings.EVAL = True
+        print('**********Training finished.********')
 
 
 if __name__ == '__main__':
