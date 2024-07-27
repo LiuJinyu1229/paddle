@@ -2,11 +2,19 @@
 PyTorch implementation for paper “Partial-Softmax Loss based Deep Hashing”
 
 ## Requirements
-* Python 3.8
-* paddlepaddle 2.5.2
 
-## Datasets
+- Python 3.8.18
+- paddlepaddle 2.1.0
+- cuda 11.2
+- cudnn 8.2.1
 
-The NUS-WIDE dataset is available at: https://pan.baidu.com/s/1tizJc3VZIBE0RghRByahNA; password: 7qim.
+## Demo
+```
+train:
+$ python PSLDH.py --train
+test:
+$ python PSLDH.py
+```
 
-The MS COCO dataset is available at: https://pan.baidu.com/s/1l1nUErRHgf3P5wJHRyv8HA; password: 9vcb.
+## Dataset
+- mir_cnn_twt.mat
