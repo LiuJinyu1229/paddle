@@ -185,26 +185,26 @@ def MLS3RDUH_algo(code_length, train):
         top20 = paddle.argsort(top, axis=-1)[0]
         k = list(top20[-nno:])
         manifold20[i] = k
-    print('start calculate final_sim')
-    for i in tqdm(range(len(sim20))):
-        aa = len(manifold20[i])
-        zz = copy.deepcopy(manifold20[i])
-        ddd = []
-        for k in range(aa):
-            if zz[k] in sim20[i]:
-                sim20[i].remove(zz[k])
-                manifold20[i].remove(zz[k])
-                key = zz[k].numpy().item()
-                ddd.append(ind_to_new_id[key])
-        j = ind_to_new_id[i]
-        for l in ddd:
-            final_sim[j, l] = 1.0
-        for l in sim20[i]:
-            key = l.numpy().item()
-            final_sim[j, ind_to_new_id[key]] = 0.0
-    np.save('final_sim.npy', final_sim)
-    print('end calculate final_sim')
-    # final_sim = np.load('final_sim.npy')
+    # print('start calculate final_sim')
+    # for i in tqdm(range(len(sim20))):
+    #     aa = len(manifold20[i])
+    #     zz = copy.deepcopy(manifold20[i])
+    #     ddd = []
+    #     for k in range(aa):
+    #         if zz[k] in sim20[i]:
+    #             sim20[i].remove(zz[k])
+    #             manifold20[i].remove(zz[k])
+    #             key = zz[k].numpy().item()
+    #             ddd.append(ind_to_new_id[key])
+    #     j = ind_to_new_id[i]
+    #     for l in ddd:
+    #         final_sim[j, l] = 1.0
+    #     for l in sim20[i]:
+    #         key = l.numpy().item()
+    #         final_sim[j, ind_to_new_id[key]] = 0.0
+    # np.save('final_sim.npy', final_sim)
+    # print('end calculate final_sim')
+    final_sim = np.load('final_sim.npy')
     f1 = (final_sim > 0.999).astype('float32')
     f1 = ((f1 + f1.T) > 0.999).astype('float32')
     f2 = (final_sim < 0.0001).astype('float32')
