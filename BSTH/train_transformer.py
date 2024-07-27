@@ -1,3 +1,4 @@
+import numpy as np
 import paddle
 import argparse
 import time
@@ -5,7 +6,7 @@ import sys
 import scipy.io as sio
 from model_transformer import GMMH, L2H_Prototype
 from paddle.io import DataLoader
-from utils import *
+import utils
 from data import *
 
 paddle.device.set_device('gpu:5')
@@ -25,7 +26,7 @@ def train(args, dset):
     optimizer_L2H = paddle.optimizer.Adam(learning_rate=args.lr, parameters=l2h.parameters())
     optimizer = paddle.optimizer.Adam(learning_rate=args.lr, parameters=gmmh.parameters())
     start_time = time.time() * 1000
-    _, COO_matrix = get_COO_matrix(dset.L_tr)
+    _, COO_matrix = utils.get_COO_matrix(dset.L_tr)
     COO_matrix = paddle.to_tensor(data=COO_matrix, dtype='float32')
     train_label = paddle.to_tensor(data=dset.L_tr, dtype='float32')
     for epoch in range(args.epochs_pre):
@@ -43,7 +44,7 @@ def train(args, dset):
         optimizer_L2H.step()
     l2h.eval()
     B_tr = np.sign(l2h(train_label)[1].cpu().numpy())
-    map_train = calculate_map(B_tr, B_tr, dset.L_tr, dset.L_tr)
+    map_train = utils.calculate_map(B_tr, B_tr, dset.L_tr, dset.L_tr)
     print('Training MAP: %.4f' % map_train)
     print('=' * 30)
     train_loader = DataLoader(my_dataset(dset.I_tr, dset.T_tr, dset.L_tr, B_tr=B_tr), 
@@ -56,7 +57,7 @@ def train(args, dset):
             txt_feat = txt_feat.cuda()
             label = label.astype('float32').cuda()
             B_gnd = B_gnd.cuda()
-            aff_label = affinity_tag_multi(label, label)
+            aff_label = utils.affinity_tag_multi(label, label)
             aff_label = paddle.to_tensor(aff_label).cuda()
             optimizer.clear_grad()
             H, pred = gmmh(img_feat, txt_feat)
@@ -122,20 +123,8 @@ def eval(model, dset, args):
     end_time = time.time() * 1000
     query_time = end_time - start_time
     print('[Retrieval time] %.4f, [Query time] %.4f' % (retrieval_time / 1000, query_time / 1000))
-    map_eval = calculate_map(valCode, retrievalCode, dset.L_te, dset.L_db)
+    map_eval = utils.calculate_map(valCode, retrievalCode, dset.L_te, dset.L_db)
     print('Evaluation MAP: %.4f' % map_eval)
-    # if args.save_flag:
-    #     _dict = {
-    #         'retrieval_B': retrievalCode.astype(np.int8), 
-    #         'val_B':valCode.astype(np.int8), 
-    #         'cateTrainTest': np.sign(dset.L_db @ dset.L_te.T).astype(np.int8), 
-    #         'L_db': dset.L_db, 
-    #         'L_te': dset.L_te
-    #     }
-    #     sava_path = 'Hashcode/GMMH_' + str(args.nbit) + '_' + args.dataset + '_bits.mat'
-    #     sio.savemat(sava_path, _dict)
-    # else:
-    #     return retrievalCode, valCode, dset.L_db, dset.L_te.T
     return 0
 
 
@@ -168,8 +157,9 @@ if __name__ == '__main__':
     parser.add_argument('--param_sim', type=float, default=1)
     parser.add_argument('--save_flag', type=bool, default=True)
     parser.add_argument('--seed', type=int, default=2021)
+    parser.add_argument('--train', action='store_true', help='Training mode')
     args = parser.parse_args()
-    seed_setting(args.seed)
+    utils.seed_setting(args.seed)
     dset = load_data(args.dataset)
     print('Train size: %d, Retrieval size: %d, Query size: %d' % (dset.I_tr.shape[0], dset.I_db.shape[0], dset.I_te.shape[0]))
     print('Image dimension: %d, Text dimension: %d, Label dimension: %d' % (dset.I_tr.shape[1], dset.T_tr.shape[1], dset.L_tr.shape[1]))
@@ -180,8 +170,12 @@ if __name__ == '__main__':
     args.txt_hidden_dim.insert(0, args.text_dim)
     args.L2H_hidden_dim.insert(0, args.classes)
     args.L2H_hidden_dim.append(args.nbit)
-    model = train(args, dset)
-    # model = GMMH(args=args)
-    # model_path = 'checkpoint/GMMH_' + str(args.nbit) + '_' + args.dataset + '.paparams'
-    # model.load_state_dict(paddle.load(model_path))
+    if args.train:
+        model = train(args, dset)
+    else:
+        print('Load model...')
+        model = GMMH(args=args)
+        model_path = 'checkpoint/BSTH_' + args.dataset + '_' + str(args.nbit) + '.paparams'
+        model.set_state_dict(paddle.load(model_path))
+        print('Model loaded.')
     eval(model, dset, args)
