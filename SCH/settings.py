@@ -19,8 +19,8 @@ EPOCH_INTERVAL = 2
 parser = argparse.ArgumentParser(description='Ours')
 parser.add_argument('--dataname', type=str, default='flickr', help='Dataset name: flickr/coco/nuswide')
 parser.add_argument('--Bit', default=32, help='hash bit', type=int)
-parser.add_argument('--eval', type=bool, default=False, help='whether to train or test')
-parser.add_argument('--GID', default=7, help='gpu id', type=int)
+parser.add_argument('--train', action='store_true', help='Training mode')
+parser.add_argument('--GID', default=5, help='gpu id', type=int)
 parser.add_argument('--Alpha', default=1, help='0 MIR, 1 NUS', type=float)
 parser.add_argument('--Beta', default=1, help='0 MIR, 1 NUS', type=float)
 args = parser.parse_args()
@@ -28,7 +28,7 @@ CODE_LEN = args.Bit
 GPU_ID = args.GID
 ALPHA = args.Alpha
 BETA = args.Beta
-EVAL = args.eval
+EVAL = args.train
 
 if args.dataname == 'flickr':
     DIR = '/home1/ljy/dataset/mir_cnn_twt.mat'
