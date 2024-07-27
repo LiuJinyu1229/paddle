@@ -11,9 +11,9 @@ Paddle implementation for the paper “Weighted Gaussian Loss based Hamming Hash
 ## Demo
 ```
 train:
-$ python train_transformer.py --train
+$ python WGLHH.py --train
 test:
-$ python train_transformer.py
+$ python WGLHH.py
 ```
 
 ## Dataset
