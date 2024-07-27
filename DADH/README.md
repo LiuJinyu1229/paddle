@@ -20,7 +20,7 @@ python main.py
 ```
 
 ## Dataset
-`FLICKR-25K.mat`
+- FLICKR-25K.mat
 
 ## Note
 
