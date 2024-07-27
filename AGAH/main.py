@@ -242,8 +242,8 @@ def train(**kwargs):
                 max_mapi2t = mapi2t
                 max_mapt2i = mapt2i
                 save_model(model)
-                path = './checkpoint/AGAH_' + opt.dataset + '_' + str(opt.bit)
-                paddle.save(FEATURE_MAP, os.path.join(path, '_feature_map.pdparams'))
+                path = './checkpoint/AGAH_' + opt.dataset + '_' + str(opt.bit) + '_feature_map.pdparams'
+                paddle.save(FEATURE_MAP, path)
 
         if epoch % 100 == 0:
             # for params in optimizer.param_groups:
@@ -324,10 +324,13 @@ def test(**kwargs):
 
     model = agah.AGAH(opt.bit, opt.tag_dim, opt.num_label, opt.emb_dim,
                 lambd=opt.lambd, pretrain_model=pretrain_model)
-
+    
+    print("start to load model...")
     path = './checkpoint/AGAH_' + opt.dataset + '_' + str(opt.bit)
-    load_model(model, path)
-    FEATURE_MAP = paddle.load(os.path.join(path, '_feature_map.pdparams')).cuda()
+    path_map = path + '_feature_map.pdparams'
+    model = load_model(model, path)
+    FEATURE_MAP = paddle.load(path_map).cuda()
+    print("load model success!")
 
     model.eval()
 
@@ -338,10 +341,10 @@ def test(**kwargs):
     y_query_data = Dataset(opt, images, tags, labels, test='text.query')
     y_db_data = Dataset(opt, images, tags, labels, test='text.db')
 
-    x_query_dataloader = DataLoader(x_query_data, opt.batch_size, shuffle=False)
-    x_db_dataloader = DataLoader(x_db_data, opt.batch_size, shuffle=False)
-    y_query_dataloader = DataLoader(y_query_data, opt.batch_size, shuffle=False)
-    y_db_dataloader = DataLoader(y_db_data, opt.batch_size, shuffle=False)
+    x_query_dataloader = DataLoader(x_query_data, batch_size=opt.batch_size, shuffle=False)
+    x_db_dataloader = DataLoader(x_db_data, batch_size=opt.batch_size, shuffle=False)
+    y_query_dataloader = DataLoader(y_query_data, batch_size=opt.batch_size, shuffle=False)
+    y_db_dataloader = DataLoader(y_db_data, batch_size=opt.batch_size, shuffle=False)
 
     qBX = generate_img_code(model, x_query_dataloader, opt.query_size, FEATURE_MAP)
     qBY = generate_txt_code(model, y_query_dataloader, opt.query_size, FEATURE_MAP)
@@ -402,8 +405,8 @@ def avoid_inf(x):
 
 
 def load_model(model, path):
-    if path is not None:
-        model.set_state_dict(paddle.load(path + '.pdparams'))
+    model.set_state_dict(paddle.load(path + '.pdparams'))
+    return model
 
 
 def save_model(model):
