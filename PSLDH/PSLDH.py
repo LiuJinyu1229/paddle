@@ -176,7 +176,9 @@ def PSLDH_Algo(code_length, train):
                 epoch_loss_r / len(train_loader)))
         paddle.save(hash_model.state_dict(), file_name)
     else:
+        print('Loading pre-trained model...')
         hash_model.set_state_dict(paddle.load(file_name))
+        print('Model loaded.')
         
     ## testing
     print('Testing...')
@@ -187,6 +189,8 @@ def PSLDH_Algo(code_length, train):
     print('map:', map)
 
 if __name__=="__main__":
-    bit = 16
-    train = False
-    PSLDH_Algo(bit, train)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--bit', type=int, default=16)
+    parser.add_argument('--train', action='store_true', help='Training mode')
+    args = parser.parse_args()
+    PSLDH_Algo(args.bit, args.train)
