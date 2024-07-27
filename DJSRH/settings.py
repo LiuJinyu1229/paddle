@@ -6,6 +6,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataname', type=str, default='flickr', help='Dataset name: flickr/coco/nuswide')
 parser.add_argument('--bits', type=int, default=16, help='16/32/64/128')
 parser.add_argument('--epochs', type=int, default=500, help='The epoch of training stage.')
+parser.add_argument('--train', action='store_true', help='Training mode')
 args = parser.parse_args()
 if args.dataname == 'flickr':
     DIR = '/home1/ljy/dataset/mir_cnn_twt.mat'
@@ -39,8 +40,8 @@ WEIGHT_DECAY = 0.0005
 
 NUM_WORKERS = 1
 EPOCH_INTERVAL = 2
-MODEL_DIR = './model'
-EVAL = False
+MODEL_DIR = './checkpoint'
+EVAL = args.train
 
 logger = logging.getLogger('train')
 logger.setLevel(logging.INFO)
