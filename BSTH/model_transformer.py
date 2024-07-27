@@ -1,12 +1,6 @@
 import sys
-sys.path.append('/home1/ljy/paddle/paddle_project/utils')
-# import paddle_aux
 import paddle
-from layers import *
-# try:
-# except:
-#     raise ImportError(
-#         'TransformerEncoder module does not exist in PyTorch 1.1 or lower.')
+import layers
 
 from paddle.nn import TransformerEncoder, TransformerEncoderLayer, LayerNorm
 
@@ -46,12 +40,12 @@ class GMMH(paddle.nn.Layer):
         self.act = args.trans_act
         self.dropout = args.dropout
         self.num_layer = args.num_layer
-        self.imageMLP = MLP(hidden_dim=self.img_hidden_dim, act=self.act)
-        self.textMLP = MLP(hidden_dim=self.txt_hidden_dim, act=self.act)
+        self.imageMLP = layers.MLP(hidden_dim=self.img_hidden_dim, act=self.act)
+        self.textMLP = layers.MLP(hidden_dim=self.txt_hidden_dim, act=self.act)
         self.imageConcept = paddle.nn.Linear(in_features=self.common_dim,out_features=self.common_dim * self.nbit)
         self.textConcept = paddle.nn.Linear(in_features=self.common_dim,out_features=self.common_dim * self.nbit)
-        self.imagePosEncoder = PositionalEncoding(d_model=self.common_dim,dropout=self.dropout)
-        self.textPosEncoder = PositionalEncoding(d_model=self.common_dim,dropout=self.dropout)
+        self.imagePosEncoder = layers.PositionalEncoding(d_model=self.common_dim,dropout=self.dropout)
+        self.textPosEncoder = layers.PositionalEncoding(d_model=self.common_dim,dropout=self.dropout)
         imageEncoderLayer = TransformerEncoderLayer(d_model=self.common_dim, 
                                                     nhead=self.nhead, 
                                                     dim_feedforward=self.common_dim,
