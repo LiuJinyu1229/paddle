@@ -12,6 +12,7 @@ import pickle
 from datasets.data_handler import load_data
 from datasets.dataset import Dataset
 from tqdm import tqdm
+import argparse
 
 # from dset import MY_DATASET
 paddle.device.set_device('gpu:4')
@@ -249,16 +250,16 @@ def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_d
     return mapi2t, mapt2i
 
 def test(**kwargs):
+    print("start to test...")
     opt.parse(kwargs)
 
     # pretrain_model = load_pretrain_model(opt.pretrain_model_path)
+    print("start to load model...")
     pretrain_model = None
-
     generator = GEN(opt.dropout, opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, pretrain_model=pretrain_model)
-    # paddle.to_tensor(generator, place=opt.device)
-
     path = 'checkpoint/DADH_' + opt.dataset + '_' + str(opt.bit)
     load_model(generator, path)
+    print("load model success!")
 
     generator.eval()
 
@@ -302,6 +303,7 @@ def test(**kwargs):
     mapi2t = calc_map(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map(qBY, rBX, query_labels, db_labels)
     print('...test MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (mapi2t, mapt2i))
+    print("end test...")
 
 
 def generate_img_code(model, test_dataloader, num):
@@ -341,5 +343,11 @@ def save_model(model):
 
 
 if __name__ == '__main__':
-    # train(flag='mir')
-    test(flag='mir')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train', action='store_true', help='Training mode')
+    parser.add_argument('--dataset', type=str, default='mir', help='Dataset')
+    args = parser.parse_args()
+    if args.train:
+        train(flag='mir')
+    else:
+        test(flag='mir')
