@@ -54,7 +54,6 @@ class MY_DATASET(paddle.io.Dataset):
             img = self.transform(img)
         if self.target_transform is not None:
             target = self.target_transform(target)
-        print(img.shape, txt.shape, target.shape, index)
         return img, txt, target, index
 
     def __len__(self):
