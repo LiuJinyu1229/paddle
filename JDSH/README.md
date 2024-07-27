@@ -2,16 +2,23 @@
 
 paddlepaddle implementataion for Joint-modal Distribution-based Similarity Hashing for Large-scale Unsupervised Deep Cross-modal Retrieval
 
-## Environment
+## Requirements
 
-`Python 3.7.2`
-`paddlepaddle 2.5.2`
+- Python 3.8.18
+- paddlepaddle 2.1.0
+- cuda 11.2
+- cudnn 8.2.1
 
-## Usage
+## Demo
+```
+train:
+$ python main.py --train
+test:
+$ python main.py
+```
 
-`python main.py train` for train and test JDSH.
-
-`python main.py evaluate` for test only.
+## Dataset
+- mir25_crossmodal.h5
 
 ## Citation
 ```
