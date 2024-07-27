@@ -18,9 +18,12 @@ class GCIC(object):
         self.beta_query = config.beta_query
         self.dataset = config.dataset
 
-        complete_data, train_missed_data, query_missed_data = load_data(self.dataset, self.alpha_train, self.beta_train, self.alpha_query, self.beta_query)
         self.config = config
         self.logger = logger
+
+        self.logger.info('start loading data')
+        complete_data, train_missed_data, query_missed_data = load_data(self.dataset, self.alpha_train, self.beta_train, self.alpha_query, self.beta_query)
+        self.logger.info('finish loading data')
 
         self.dropout = config.dropout
         self.EPOCHS = config.epochs
@@ -69,7 +72,7 @@ class GCIC(object):
         self.num_classes = self.train_labels.shape[1]
         self.logger.info('Dataset-%s has %d classes!' % (self.dataset, self.num_classes))
 
-        self.model_path = 'model/NCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
+        self.model_path = 'checkpoint/NCH_' + self.dataset + '_' + str(self.nbit) + '.pdparams'
 
         self.img_mlp_enc = model.MLP(units=[self.img_dim, self.image_hidden_dim, self.fusion_dim])
         self.txt_mlp_enc = model.MLP(units=[self.txt_dim, self.text_hidden_dim, self.fusion_dim])
@@ -79,7 +82,7 @@ class GCIC(object):
         self.txt_ffn_enc = model.FFNGenerator(input_dim=self.img_dim, output_dim=self.txt_dim)
         self.fusion_model = model.Fusion(fusion_dim=self.fusion_dim, nbit=self.nbit)
 
-        if config.test == 1:
+        if config.train == False:
             self.logger.info("Loading model from %s" % (self.model_path))
             checkpoint = paddle.load(self.model_path)
             self.img_mlp_enc.set_state_dict(checkpoint['img_mlp_enc'])
@@ -186,6 +189,7 @@ class GCIC(object):
                 loss = self.trainstep(train_dual_img, train_dual_txt, train_dual_labels, train_only_img, train_only_img_labels, train_only_txt, train_only_txt_labels)
                 if batch_idx + 1 == self.batch_count:
                     self.logger.info('[%4d/%4d] Loss: %.4f' % (epoch + 1, self.EPOCHS, loss))
+        self.logger.info('Saving model to %s' % (self.model_path))
         paddle.save({'img_mlp_enc': self.img_mlp_enc.state_dict(),
                      'txt_mlp_enc': self.txt_mlp_enc.state_dict(),
                      'img_TEs_enc': self.img_TEs_enc.state_dict(),
@@ -193,6 +197,7 @@ class GCIC(object):
                      'img_ffn_enc': self.img_ffn_enc.state_dict(),
                      'txt_ffn_enc': self.txt_ffn_enc.state_dict(),
                      'fusion_model': self.fusion_model.state_dict()}, self.model_path)
+        self.logger.info('Saving model finished!')
 
     def trainstep(self, train_dual_img, train_dual_txt, train_dual_labels,
         train_only_img, train_only_img_labels, train_only_txt,
