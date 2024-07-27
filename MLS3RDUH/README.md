@@ -5,8 +5,9 @@ paddlepaddle implementation for paper “MLS^3RDUH: Deep Unsupervised Hashing vi
 This paper introduces a novel unsupervised deep hashing method called MLS3RDUH, which reconstructs the local semantic similarity structure using manifold and cosine similarity between data points. A new similarity matrix is defined, and a novel log-cosh hashing loss function is used to optimize the hashing network, resulting in improved retrieval performance. Experimental results on three datasets demonstrate that MLS3RDUH outperforms state-of-the-art baselines, making it a significant contribution to unsupervised hashing methods.
 
 ## pretrain_loading
-- 下载文件final_sim.npy至主目录
-- 下载文件alexnet_flickr_features4096_labels.pkl至文件夹\features\下
+- 下载final_sim.npy至主目录
+- 下载alexnet_flickr_features4096_labels.pkl至文件夹\features\下
+- 下载链接详见checkpoint
 
 ## Requirements
 
