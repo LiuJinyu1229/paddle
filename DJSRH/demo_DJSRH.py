@@ -147,6 +147,7 @@ class Session:
         self.logger.info('--------------------------------------------------------------------')
 
     def save_checkpoints(self, step, file_name):
+        self.logger.info('**********Save the trained model...**********')
         ckp_path = os.path.join(settings.MODEL_DIR, file_name)
         paddle.save({
             'ImgNet': self.CodeNet_I.state_dict(),
@@ -171,9 +172,9 @@ def main():
     
     sess = Session()
     sess.logger.info('**********Start training...**********')
-    file_name = './checkpoint/DJSRH_' + settings.DATASET_NAME + '_' + str(settings.CODE_LEN) + '.pdparams'
+    file_name = 'DJSRH_' + settings.DATASET_NAME + '_' + str(settings.CODE_LEN) + '.pdparams'
 
-    if settings.EVAL == True:
+    if settings.EVAL == False:
         sess.load_checkpoints(file_name)
         sess.eval()
 
