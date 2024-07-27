@@ -145,7 +145,7 @@ def DAPH_Algo(opt):
 
     eps = 1e-5
     if opt.train:
-        print('start training')
+        print('start training...')
         for epoch in range(epochs):
             hash_model.train()
             text_model.eval()
@@ -221,7 +221,7 @@ def DAPH_Algo(opt):
         hash_model.set_state_dict(checkpoint['hash_model'])
         text_model.set_state_dict(checkpoint['text_model'])
 
-    print('start testing')
+    print('start testing...')
     hash_model.eval()
     text_model.eval()
     qi, qt = GenerateCode(hash_model, text_model, test_loader, num_test, bit)
@@ -233,7 +233,7 @@ def DAPH_Algo(opt):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--eta', default=1.0, type=float, help='eta')
-    parser.add_argument('--train', default=False, type=bool, help='train or not')
+    parser.add_argument('--train', action='store_true', help='Training mode')
     parser.add_argument('--bit', default=64, type=int, help='hash code length')
     parser.add_argument('--gamma', default=20, type=int, help='gamma')
     parser.add_argument('--sigma', default=0.2, type=float, help='sigma')
