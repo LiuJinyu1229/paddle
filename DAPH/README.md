@@ -18,9 +18,9 @@ python DAPH_proxy_code.py
 ## Demo
 ```
 train:
-python DAPH.py --train
+$ python DAPH.py --train
 test:
-python DAPH.py
+$ python DAPH.py
 ```
 
 ## Dataset
