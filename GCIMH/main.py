@@ -125,7 +125,7 @@ if __name__ == '__main__':
     args = parse_arguments()
 
     os.environ['FLAGS_cudnn_deterministic'] = 'True'
-    paddle.device.set_device('gpu:1')
+    paddle.device.set_device('gpu:2')
 
     paths = ''
     if args.dataset == 'flickr':
@@ -279,9 +279,9 @@ if __name__ == '__main__':
                 print('Testing...')
                 print("start to load model")
                 checkpoint = paddle.load(path)
-                label_model.load_state_dict(checkpoint['label_model'])
-                autoencoder_gcn_model.load_state_dict(checkpoint['autoencoder_gcn_model'])
-                fusion_model.load_state_dict(checkpoint['fusion_model'])
+                label_model.set_state_dict(checkpoint['label_model'])
+                autoencoder_gcn_model.set_state_dict(checkpoint['autoencoder_gcn_model'])
+                fusion_model.set_state_dict(checkpoint['fusion_model'])
                 print("model has been loaded")
                 evaluate()
                 print('end of testing')
