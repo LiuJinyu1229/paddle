@@ -1,5 +1,7 @@
 import argparse
 import time
+
+import paddle
 import utils
 from GCIC_ours import *
 
@@ -8,14 +10,15 @@ paddle.device.set_device('gpu:5')
 
 def _main(config, logger, running_cnt):
     model = GCIC(config=config, logger=logger, running_cnt=running_cnt)
-    logger.info('===========================================================================')
-    logger.info('Training stage!')
-    start_time = time.time() * 1000
-    model.warmup()
-    model.train()
-    train_time = time.time() * 1000 - start_time
-    logger.info('Training time: %.6f' % (train_time / 1000))
-    logger.info('===========================================================================')
+    if config.train:
+        logger.info('===========================================================================')
+        logger.info('Training stage!')
+        start_time = time.time() * 1000
+        model.warmup()
+        model.train()
+        train_time = time.time() * 1000 - start_time
+        logger.info('Training time: %.6f' % (train_time / 1000))
+        logger.info('===========================================================================')
     logger.info('===========================================================================')
     logger.info('Testing stage!')
     start_time = time.time() * 1000
@@ -48,6 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('--param_sign', type=float, default=0.1, help='Sign loss.')
     parser.add_argument('--ANCHOR', type=str, default='random', help='Anchor choose!(random/balance)')
     parser.add_argument('--run_times', type=int, default=1)
+    parser.add_argument('--train', action='store_true', help='Training mode')
     logger = utils.logger()
     logger.info('===========================================================================')
     logger.info('Current File: {}'.format(__file__))
