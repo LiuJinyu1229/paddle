@@ -1,16 +1,27 @@
 # DAPH
+
+## Introduction
 The implementation of "Data-Aware Proxy Hashing for Cross-modal Retrieval"
-
-
-The IAPR TC-12 dataset is available at:https://pan.baidu.com/s/15-bxqgiQk1hx53BQrWIoXQ password is: ml2e
 
 If there are not corresponding proxy hash codes in ./data_aware_proxy_codes, please generate the proxy hash codes by:
 ```python 
 python DAPH_proxy_code.py
 ```
 
+## Requirements
 
-Then you can train the modality-spcific hashing networks by:
-```python 
+- Python 3.8.18
+- paddlepaddle 2.1.0
+- cuda 11.2
+- cudnn 8.2.1
+
+## Demo
+```
+train:
+python DAPH.py --train
+test:
 python DAPH.py
 ```
+
+## Dataset
+`iaprtc.h5`
