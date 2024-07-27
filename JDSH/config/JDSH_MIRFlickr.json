@@ -16,9 +16,9 @@
     "SCALE_RIGHT" : 0.088,
     "L1" : 0.1,
     "L2" : 0.2,
-    "DATA_DIR": "/home/zhangyh/code/ljy/dataset/mir25_crossmodal.h5",
+    "DATA_DIR": "/home1/ljy/dataset/FLICKR.mat",
 
-    "HASH_BIT" : 128,
+    "HASH_BIT" : 32,
     "BATCH_SIZE" : 32,
     "MOMENTUM" : 0.9,
     "WEIGHT_DECAY" : 5e-4,
