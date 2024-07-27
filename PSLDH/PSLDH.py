@@ -183,8 +183,8 @@ def PSLDH_Algo(code_length, train):
     ## testing
     print('Testing...')
     hash_model.eval()
-    qi = GenerateCode(hash_model, test_loader, num_test, bit)
-    ri = GenerateCode(hash_model, database_loader, num_database, bit)
+    qi = GenerateCode(hash_model, test_loader, num_test, code_length)
+    ri = GenerateCode(hash_model, database_loader, num_database, code_length)
     map = calc_hr.calc_map(qi, ri, test_labels, database_labels)
     print('map:', map)
 
