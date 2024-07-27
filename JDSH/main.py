@@ -3,7 +3,7 @@ from utils import logger
 from args import config
 import paddle
 
-paddle.device.set_device('gpu:6')
+paddle.device.set_device('gpu:5')
 
 def log_info(logger, config):
 
@@ -28,11 +28,14 @@ def main():
 
     Model = JDSH(log, config)
 
-    if config.EVALUATE:
+    if config.TRAIN == False:
+        print("Testing...")
         Model.load_checkpoints(config.CHECKPOINT)
         Model.eval()
+        print("Testing Done!")
 
-    elif config.TRAIN:
+    else:
+        print("Training...")
         for epoch in range(config.NUM_EPOCH):
             Model.train(epoch)
             if (epoch + 1) % config.EVAL_INTERVAL == 0:
@@ -40,9 +43,7 @@ def main():
             # save the model
             if epoch + 1 == config.NUM_EPOCH:
                 Model.save_checkpoints(config.CHECKPOINT)
-        Model.eval()
-    else:
-        raise ValueError('Error configuration, please check your config, using "train" or "evaluate".')
+        print("Training Done!")
 
 
 
