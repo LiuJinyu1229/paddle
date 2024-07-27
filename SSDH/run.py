@@ -31,6 +31,7 @@ def run():
 
     multi_labels = args.dataset in multi_labels_dataset
     if args.train:
+        print("start training")
         ssdh.train(
             log,
             train_dataloder,
@@ -53,7 +54,9 @@ def run():
             train_label,
             database_label
         )
+        print("Training Done!")
     elif args.evaluate:
+        print("Testing...")
         model = load_model(args.arch, args.code_length)
         model.load_snapshot(args.checkpoint)
         model.eval()
@@ -70,6 +73,7 @@ def run():
             database_label
             )
         log.info('[Inference map:{:.4f}]'.format(mAP.item()))
+        print("Testing Done!")
     else:
         raise ValueError('Error configuration, please check your config, using "train" or "evaluate".')
 
