@@ -46,7 +46,6 @@ def WGLHH_algo(bit, train):
     containt0 = 0.0001
     data_set = 'flickr'
     file_name = './checkpoint/WGLHH_' + data_set + '_' + str(bit) + '.pdparams'
-    train = not os.path.exists(file_name)
 
     ## MS COCO
     if bit < 32:
